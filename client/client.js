@@ -124,8 +124,44 @@ function callPrimeNumberDecomposition() {
   });
 }
 
+function callLongGreeting() {
+  // Created our server client
+  var client = new service.GreetServiceClient(
+    "localhost:50051",
+    grpc.credentials.createInsecure()
+  );
+  var request = new greets.LongGreetRequest();
+
+  var call = client.longGreet(request, (error, response) => {
+    if (!error) {
+      console.log("Server Response: ", response.getResult());
+    } else {
+      console.error(error);
+    }
+  });
+
+  let count = 0,
+    intervalID = setInterval(function () {
+      console.log("Sending message " + count);
+      var request = new greets.LongGreetRequest();
+      var greeting = new greets.Greeting();
+      greeting.setFirstName("Takeru");
+      greeting.setLastName("Kondo");
+
+      request.setGreet(greeting);
+
+      call.write(request);
+
+      if (++count > 3) {
+        clearInterval(intervalID);
+        call.end(); // we have sent all the messages
+      }
+    }, 1000);
+}
+
 function main() {
-  callPrimeNumberDecomposition();
+  callLongGreeting();
+  // callPrimeNumberDecomposition();
   // callGreetManyTimes();
   //callGreetings();
   // callSum();
