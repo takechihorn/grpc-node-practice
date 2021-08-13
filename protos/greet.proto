@@ -4,13 +4,13 @@ package greet;
 
 service GreetService {
   //unary API
-  rpc Greet(GreetRequest) returns (GreetResponse){}
+  rpc Greet (GreetRequest) returns (GreetResponse){}
 
   //Server streaming API
   rpc GreetManyTimes (GreetManyTimesRequest) returns (stream GreetManyTimesResponse){}
 
   // Client Streaming
-  rpc LongGreet(stream LongGreetRequest) returns (LongGreetResponse){}
+  rpc LongGreet (stream LongGreetRequest) returns (LongGreetResponse){}
 }
 
 message LongGreetRequest{

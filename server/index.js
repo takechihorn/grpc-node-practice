@@ -83,6 +83,36 @@ function longGreet(call, callback) {
   });
 }
 
+function computeAverage(call, callback) {
+  // running sum and count
+  var sum = 0;
+  var count = 0;
+
+  call.on("data", (request) => {
+    // increment sum
+    sum += request.getNumber();
+
+    console.log("Got number: " + request.getNumber());
+    // increment count
+    count += 1;
+  });
+
+  call.on("error", (error) => {
+    console.error(error);
+  });
+
+  call.on("end", () => {
+    // compute the actual average
+    var average = sum / count;
+
+    var response = new calc.ComputeAverageResponse();
+
+    response.setAverage(average);
+
+    callback(null, response);
+  });
+}
+
 function greet(call, callback) {
   var greeting = new greets.GreetResponse();
 
@@ -100,11 +130,12 @@ function main() {
   server.addService(calcService.CalculatorServiceService, {
     sum: sum,
     primeNumberDecomposition: primeNumberDecomposition,
-    longGreet: longGreet,
+    computeAverage: computeAverage,
   });
   // server.addService(service.GreetServiceService, {
   //   greet: greet,
   //   greetManyTimes: greetManyTimes,
+  //   longGreet: longGreet,
   // });
   server.bind("127.0.0.1:50051", grpc.ServerCredentials.createInsecure());
   server.start();

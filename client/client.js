@@ -97,6 +97,51 @@ function callGreetManyTimes() {
   });
 }
 
+function callComputeAverage() {
+  var client = new calcService.CalculatorServiceClient(
+    "localhost:50051",
+    grpc.credentials.createInsecure()
+  );
+
+  var request = new calc.ComputeAverageRequest();
+
+  var call = client.computeAverage(request, (error, response) => {
+    if (!error) {
+      console.log(
+        "Received a response from the server - Average: " +
+          response.getAverage()
+      );
+    } else {
+      console.error(error);
+    }
+  });
+  var request = new calc.ComputeAverageRequest();
+  // request.setNumber(1);
+
+  for (var i = 0; i < 1000000; i++) {
+    var request = new calc.ComputeAverageRequest();
+    request.setNumber(i);
+    call.write(request);
+  }
+
+  call.end();
+  // var requestTwo = new calc.ComputeAverageRequest();
+  // requestTwo.setNumber(2);
+  // var requestThree = new calc.ComputeAverageRequest();
+  // requestThree.setNumber(3);
+  // var requestFour = new calc.ComputeAverageRequest();
+  // requestFour.setNumber(4);
+
+  // average should be 2.5
+
+  // call.write(request);
+  // call.write(requestTwo);
+  // call.write(requestThree);
+  // call.write(requestFour);
+
+  // call.end(); // we are done sending messages
+}
+
 function callPrimeNumberDecomposition() {
   var client = new calcService.CalculatorServiceClient(
     "localhost:50051",
@@ -150,7 +195,15 @@ function callLongGreeting() {
 
       request.setGreet(greeting);
 
+      var requestTwo = new greets.LongGreetRequest();
+      var greetingTwo = new greets.Greeting();
+      greetingTwo.setFirstName("Eiichi");
+      greetingTwo.setLastName("Mika");
+
+      requestTwo.setGreet(greetingTwo);
+
       call.write(request);
+      call.write(requestTwo);
 
       if (++count > 3) {
         clearInterval(intervalID);
@@ -160,7 +213,8 @@ function callLongGreeting() {
 }
 
 function main() {
-  callLongGreeting();
+  callComputeAverage();
+  // callLongGreeting();
   // callPrimeNumberDecomposition();
   // callGreetManyTimes();
   //callGreetings();
