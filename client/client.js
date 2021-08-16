@@ -218,6 +218,40 @@ async function sleep(interval) {
   });
 }
 
+async function callBiDiFindMaximum() {
+  // Created our server client
+  console.log("hello I'm a gRPC Client");
+
+  var client = new calcService.CalculatorServiceClient(
+    "localhost:50051",
+    grpc.credentials.createInsecure()
+  );
+
+  var call = client.findMaximum(request, (error, response) => {});
+  call.on("data", (response) => {
+    console.log("Got new Max from Server => " + response.getMaximum());
+  });
+  call.on("error", (error) => {
+    console.error(error);
+  });
+  call.on("end", () => {
+    console.log("Server is completed sending messages");
+  });
+
+  // data
+  let data = [3, 5, 17, 9, 8, 30, 12, 46467, 8767, 9999999];
+  for (var i = 0; i < data.length; i++) {
+    var request = new calc.FindMaximumRequest();
+    console.log("Sending number:" + data[i]);
+
+    request.setNumber(data[i]);
+    call.write(request);
+    await sleep(1000);
+  }
+  call.end(); //we are done sending messages
+  await sleep(1000);
+}
+
 async function callBiDirect() {
   // Created our server client
   console.log("hello I'm a gRPC Client");
@@ -259,8 +293,31 @@ async function callBiDirect() {
   call.end();
 }
 
+function doErrorCall() {
+  // Created our server client
+  console.log("hello I'm a gRPC Client'");
+  var client = new calcService.CalculatorServiceClient(
+    "localhost:50051",
+    grpc.credentials.createInsecure()
+  );
+
+  var number = -1;
+  var squareRootRequest = new calc.SquareRootRequest();
+  squareRootRequest.setNumber(number);
+
+  client.squareRoot(squareRootRequest, (error, response) => {
+    if (!error) {
+      console.log("Square root is ", response.getNumberRoot());
+    } else {
+      console.log(error.message);
+    }
+  });
+}
+
 function main() {
-  callBiDirect();
+  doErrorCall();
+  // callBiDiFindMaximum();
+  // callBiDirect();
   // callComputeAverage();
   // callLongGreeting();
   // callPrimeNumberDecomposition();

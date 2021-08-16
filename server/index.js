@@ -119,6 +119,39 @@ async function sleep(interval) {
   });
 }
 
+// FindMaximum - Solution
+async function findMaximum(call, callback) {
+  var currentMaximum = 0;
+  var currentNumber = 0;
+
+  call.on("data", (request) => {
+    currentNumber = request.getNumber();
+    if (currentNumber > currentMaximum) {
+      currentMaximum = currentNumber;
+
+      var response = new calc.FindMaximumResponse();
+      response.setMaximum(currentMaximum);
+
+      call.write(response);
+    } else {
+      // do nothing
+    }
+    console.log("Streamed number:", request.getNumber());
+  });
+
+  call.on("error", (error) => {
+    console.error(error);
+  });
+  call.on("end", () => {
+    var response = new calc.FindMaximumResponse();
+    response.setMaximum(currentMaximum);
+
+    call.write(response);
+    call.end();
+    console.log("The end !");
+  });
+}
+
 async function greetEveryone(call, callback) {
   call.on("data", (response) => {
     var fullName =
@@ -160,20 +193,39 @@ function greet(call, callback) {
   );
   callback(null, greeting);
 }
+function squareRoot(call, callback) {
+  var number = call.request.getNumber();
+  if (number >= 0) {
+    var numberRoot = Math.sqrt(number);
+    var response = new calc.SquareRootResponse();
+    response.setNumberRoot(numberRoot);
+
+    callback(null, response);
+  } else {
+    // Error handleBidiStreaming
+    return callback({
+      code: grpc.status.INVALID_ARGUMENT,
+      message:
+        "The number being sent is not positive " + "Number sent: " + number,
+    });
+  }
+}
 
 function main() {
   var server = new grpc.Server();
-  // server.addService(calcService.CalculatorServiceService, {
-  //   sum: sum,
-  //   primeNumberDecomposition: primeNumberDecomposition,
-  //   computeAverage: computeAverage,
-  // });
-  server.addService(service.GreetServiceService, {
-    greet: greet,
-    greetManyTimes: greetManyTimes,
-    longGreet: longGreet,
-    greetEveryone: greetEveryone,
+  server.addService(calcService.CalculatorServiceService, {
+    sum: sum,
+    primeNumberDecomposition: primeNumberDecomposition,
+    computeAverage: computeAverage,
+    findMaximum: findMaximum,
+    squareRoot: squareRoot,
   });
+  // server.addService(service.GreetServiceService, {
+  //   greet: greet,
+  //   greetManyTimes: greetManyTimes,
+  //   longGreet: longGreet,
+  //   greetEveryone: greetEveryone,
+  // });
   server.bind("127.0.0.1:50051", grpc.ServerCredentials.createInsecure());
   server.start();
   console.log("Server running on port 127.0.0.1:50051");
