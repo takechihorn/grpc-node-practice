@@ -113,6 +113,42 @@ function computeAverage(call, callback) {
   });
 }
 
+async function sleep(interval) {
+  return new Promise((resolve) => {
+    setTimeout(() => resolve(), interval);
+  });
+}
+
+async function greetEveryone(call, callback) {
+  call.on("data", (response) => {
+    var fullName =
+      response.getGreet().getFirstName() +
+      " " +
+      response.getGreet().getLastName();
+
+    console.log("Hello Server" + fullName);
+  });
+  call.on("error", (error) => {
+    console.error(error);
+  });
+  call.on("end", () => {
+    console.log("The End...");
+  });
+  for (var i = 0; i < 10; i++) {
+    // var greeting = new greets.Greeting();
+    // greeting.setFirstName("Takeru");
+    // greeting.setLastName("Kondo");
+
+    var request = new greets.GreetEveryoneResponse();
+    request.setResult("Hikaru Pi-chan");
+
+    call.write(request);
+    await sleep(1000);
+  }
+
+  call.end();
+}
+
 function greet(call, callback) {
   var greeting = new greets.GreetResponse();
 
@@ -127,16 +163,17 @@ function greet(call, callback) {
 
 function main() {
   var server = new grpc.Server();
-  server.addService(calcService.CalculatorServiceService, {
-    sum: sum,
-    primeNumberDecomposition: primeNumberDecomposition,
-    computeAverage: computeAverage,
-  });
-  // server.addService(service.GreetServiceService, {
-  //   greet: greet,
-  //   greetManyTimes: greetManyTimes,
-  //   longGreet: longGreet,
+  // server.addService(calcService.CalculatorServiceService, {
+  //   sum: sum,
+  //   primeNumberDecomposition: primeNumberDecomposition,
+  //   computeAverage: computeAverage,
   // });
+  server.addService(service.GreetServiceService, {
+    greet: greet,
+    greetManyTimes: greetManyTimes,
+    longGreet: longGreet,
+    greetEveryone: greetEveryone,
+  });
   server.bind("127.0.0.1:50051", grpc.ServerCredentials.createInsecure());
   server.start();
   console.log("Server running on port 127.0.0.1:50051");
